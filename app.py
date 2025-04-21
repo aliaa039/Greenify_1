@@ -7,23 +7,23 @@ from torchvision import transforms
 from PIL import Image
 
 
-# Flask setup
+
 app = Flask(__name__)
-UPLOAD_FOLDER = 'uploaded'
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+# UPLOAD_FOLDER = 'uploaded'
+# app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 # Load model
 def load_model(model_path, num_classes):
     model = timm.create_model("rexnet_150", pretrained=False, num_classes=num_classes)
-    model.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')))  # for CPU
+    model.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')))
     model.eval()
     return model
 
 model_path = "disease_best_model.pth"
-num_classes = 72 # Update with your actual number
+num_classes = 72
 model = load_model(model_path, num_classes)
 
-# Class names list
+# Class names (same list as before — omitted here for brevity)
 class_names = ["Apple___alternaria_leaf_spot","Apple___black_rot","Apple___brown_spot","Apple___gray_spot","Apple___healthy","Apple___rust",
                 "Apple___scab","Bell_pepper___bacterial_spot","Bell_pepper___healthy","Blueberry___healthy","Cassava___bacterial_blight",
                 "Cassava___brown_streak_disease","Cassava___green_mottle","Cassava___healthy","Cassava___mosaic_disease","Cherry___healthy",
@@ -36,18 +36,19 @@ class_names = ["Apple___alternaria_leaf_spot","Apple___black_rot","Apple___brown
                 "Sugercane___mosaic","Sugercane___red_rot","Sugercane___rust","Sugercane___yellow_leaf","Tomato___bacterial_spot","Tomato___early_blight",
                 "Tomato___healthy","Tomato___late_blight","Tomato___leaf_curl","Tomato___leaf_mold","Tomato___mosaic_virus","Tomato___septoria_leaf_spot",
                 "Tomato___spider_mites","Tomato___target_spot","Watermelon___anthracnose","Watermelon___downy_mildew","Watermelon___healthy","Watermelon___mosaic_virus"]  
+  # Keep your class names list here
 
-# Preprocessing
+# Transformations
 transformations = transforms.Compose([
     transforms.Resize((224, 224)),
     transforms.ToTensor(),
     transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                        std=[0.229, 0.224, 0.225])
+                         std=[0.229, 0.224, 0.225])
 ])
 
-# Predict function
-def predict_image(image_path):
-    image = Image.open(image_path).convert("RGB")
+# Prediction function
+def predict_image(file):
+    image = Image.open(file).convert("RGB")
     image = transformations(image).unsqueeze(0)
 
     with torch.no_grad():
@@ -56,24 +57,17 @@ def predict_image(image_path):
     
     return class_names[pred.item()]
 
-# Routes
-@app.route('/', methods=['GET', 'POST'])
-def index():
-    if request.method == 'POST':
-        if 'imagefile' not in request.files:
-            return 'No file part'
+@app.route('/', methods=['POST'])
+def predict():
+    if 'imagefile' not in request.files:
+        return jsonify({'error': 'No image uploaded'}), 400
 
-        file = request.files['imagefile']
-        if file.filename == '':
-            return 'No selected file'
-
-        filepath = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
-        file.save(filepath)
-
-        prediction = predict_image(filepath)
-        return jsonify({"result":prediction})
-    
-
+    file = request.files['imagefile']
+    try:
+        prediction = predict_image(file)
+        return jsonify({"result": prediction})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
     app.run(port=3000, debug=True)
