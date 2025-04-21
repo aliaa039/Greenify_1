@@ -1,4 +1,5 @@
 import os
+
 import torch
 import timm
 from flask import Flask, request, jsonify
