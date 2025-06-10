@@ -11,16 +11,15 @@ RUN apt-get update && apt-get install -y \
     libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy and install Python dependencies
+# Install Python dependencies
 COPY requirements.txt .
-RUN pip install --upgrade pip
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --upgrade pip && pip install --no-cache-dir -r requirements.txt
 
 # Copy app code
 COPY . .
 
-# Expose port
+# Let Render assign the port via env var
 EXPOSE 3000
 
-# Run server
-CMD ["gunicorn", "--workers=1", "--bind=0.0.0.0:3000", "app:app"]
+# Start Gunicorn server with dynamic port
+CMD ["gunicorn", "--workers=1", "--bind=0.0.0.0:${PORT}", "app:app"]
