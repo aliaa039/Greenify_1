@@ -9,8 +9,7 @@ from PIL import Image
 
 
 app = Flask(__name__)
-# UPLOAD_FOLDER = 'uploaded'
-# app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
 
 # Load model
 def load_model(model_path, num_classes):
