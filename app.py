@@ -50,6 +50,7 @@ def predict_image(file):
     print("Starting prediction...")
 
     try:
+        
         image = Image.open(file).convert("RGB")
         print("Image loaded and converted to RGB.")
     except Exception as e:
