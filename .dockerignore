@@ -8,6 +8,4 @@ Dockerfile
 .vscode/
 .git/
 .dvc/
-*.pt
-*.pth
 *.onnx
