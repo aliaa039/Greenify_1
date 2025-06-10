@@ -22,4 +22,4 @@ COPY . .
 EXPOSE 3000
 
 # Start Gunicorn server with dynamic port
-CMD ["gunicorn", "--workers=1", "--threads=2", "--timeout=120", "--bind=0.0.0.0:${PORT}", "app:app"]
+CMD ["gunicorn", "--workers=1", "--threads=2", "--timeout=120", "--bind=0.0.0.0:$PORT", "app:app"]
