@@ -13,20 +13,15 @@ app = Flask(__name__)
 # app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 # Load model
-model = None 
+def load_model(model_path, num_classes):
+    model = timm.create_model("rexnet_150", pretrained=False, num_classes=num_classes)
+    model.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')))
+    model.eval()
+    return model
 
-def load_model_once():
-    global model
-    if model is None:
-        model_path = "disease_best_model.pth"
-        num_classes = 72
-        model = timm.create_model("rexnet_150", pretrained=False, num_classes=num_classes)
-        model.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')))
-        model.eval()
-
-# model_path = "disease_best_model.pth"
-# num_classes = 72
-# model = load_model(model_path, num_classes)
+model_path = "disease_best_model.pth"
+num_classes = 72
+model = load_model(model_path, num_classes)
 
 # Class names (same list as before — omitted here for brevity)
 class_names = ["Apple___alternaria_leaf_spot","Apple___black_rot","Apple___brown_spot","Apple___gray_spot","Apple___healthy","Apple___rust",
@@ -53,7 +48,6 @@ transformations = transforms.Compose([
 
 # Prediction function
 def predict_image(file):
-    load_model_once()
     image = Image.open(file).convert("RGB")
     image = transformations(image).unsqueeze(0)
 
@@ -70,11 +64,11 @@ def predict():
 
     file = request.files['imagefile']
     try:
-        prediction = predict_image(file)
-        return jsonify({"result": prediction})
+        # prediction = predict_image(file)
+        return jsonify({"result": "successful trial"})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# if __name__ == '__main__':
-#     app.run(host="0.0.0.0", port=3000)
+if __name__ == '__main__':
+    app.run(host="0.0.0.0", port=3000)
 
