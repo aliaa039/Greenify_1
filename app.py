@@ -46,16 +46,44 @@ transformations = transforms.Compose([
                          std=[0.229, 0.224, 0.225])
 ])
 
-# Prediction function
 def predict_image(file):
-    image = Image.open(file).convert("RGB")
-    image = transformations(image).unsqueeze(0)
+    print("Starting prediction...")
 
-    with torch.no_grad():
-        output = model(image)
-        _, pred = torch.max(output, 1)
+    try:
+        image = Image.open(file).convert("RGB")
+        print("Image loaded and converted to RGB.")
+    except Exception as e:
+        print("Error loading image:", e)
+        raise Exception(f"Image loading error: {e}")
     
-    return class_names[pred.item()]
+    try:
+        image = transformations(image).unsqueeze(0)
+        print("Image transformed successfully.")
+    except Exception as e:
+        print("Error transforming image:", e)
+        raise Exception(f"Image transformation error: {e}")
+
+    try:
+        if model is None:
+            raise Exception("Model not loaded.")
+        print("Model is ready.")
+    except Exception as e:
+        print("Model loading error:", e)
+        raise Exception(f"Model error: {e}")
+
+    try:
+        with torch.no_grad():
+            output = model(image)
+            print("Model inference complete.")
+            _, pred = torch.max(output, 1)
+            print(f"Prediction index: {pred.item()}")
+    except Exception as e:
+        print("Error during model inference:", e)
+        raise Exception(f"Inference error: {e}")
+
+    result = class_names[pred.item()]
+    print(f"Prediction result: {result}")
+    return result
 
 @app.route('/', methods=['POST'])
 def predict():
@@ -64,8 +92,8 @@ def predict():
 
     file = request.files['imagefile']
     try:
-        # prediction = predict_image(file)
-        return jsonify({"result": "successful trial"})
+        prediction = predict_image(file)
+        return jsonify({"result": prediction})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
