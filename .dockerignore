@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.dockerignore
+Dockerfile
+.env
+.vscode/
+.git/
+.dvc/
+*.onnx
